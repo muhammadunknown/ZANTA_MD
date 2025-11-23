@@ -15,6 +15,7 @@ const axios = require('axios');
 const path = require('path');
 const qrcode = require('qrcode-terminal');
 
+const statusDpPlugin = require('./plugins/statusDpPlugin');
 const config = require('./config');
 const { sms, downloadMediaMessage } = require('./lib/msg');
 const {
