@@ -82,7 +82,7 @@ cmd(
         { quoted: mek }
       );
 
-      return reply("*වැඩේ හරි 🙃✅*");
+      return reply("> *වැඩේ හරි 🙃✅*");
     } catch (e) {
       console.error(e);
       reply(`*Error:* ${e.message || e}`);
