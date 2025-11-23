@@ -58,8 +58,7 @@ cmd(
       const qualityText = hd ? "HD" : "SD";
 
       const desc = `
-Your fb video
-👻 *Title*: ${title || "Unknown"}
+*Your fb video*
 👻 *Quality*: ${qualityText}
 `;
 
@@ -83,7 +82,7 @@ Your fb video
         { quoted: mek }
       );
 
-      return reply("Thank you for using ZANTA-MD");
+      return reply("*වැඩේ හරි 🙃✅*");
     } catch (e) {
       console.error(e);
       reply(`*Error:* ${e.message || e}`);
