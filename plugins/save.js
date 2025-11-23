@@ -1,13 +1,21 @@
 const { cmd } = require("../command");
+const { downloadContentFromMessage } = require('@whiskeysockets/baileys'); // Baileys core function
 
-// Note: If zanta.downloadMediaMessage is not available, you might need to use the raw Baileys download logic.
-// However, assuming ZANTA_MD exposes the core Baileys functionality via 'zanta'.
+// Helper function to convert Media Stream to a Buffer
+async function streamToBuffer (stream) {
+    return new Promise((resolve, reject) => {
+        const buffers = [];
+        stream.on('error', reject)
+              .on('data', (data) => buffers.push(data))
+              .on('end', () => resolve(Buffer.concat(buffers)))
+    })
+}
 
 cmd(
     {
         pattern: "save",
         react: "✅", 
-        desc: "Resend Status or One-Time View Media (Final FIX: Native Download)",
+        desc: "Resend Status or One-Time View Media (Stream Download Fix)",
         category: "general",
         filename: __filename,
     },
@@ -34,28 +42,25 @@ cmd(
                 return reply("*⚠️ Media Content එක හඳුනාගැනීමට අසමත් විය.*");
             }
             
-            // 2. Media Type එක තීරණය කිරීම
+            // 2. Media Type එක තීරණය කිරීම (Baileys downloadContentFromMessage සඳහා අවශ්‍යයි)
             const messageType = Object.keys(mediaObject)[0];
             
-            // 3. Media File Download (Native Baileys Method භාවිතයෙන්)
-            reply("*Status Media File එක Download කරමින් (Decryption)...* ⏳");
-            
-            // Baileys media download සඳහා සම්පූර්ණ message key සහ content අවශ්‍ය වේ.
-            // අපි 'm' object එකේ quoted part එකම download කිරීමට යවමු.
-            
-            // ⚠️ වැදගත්: downloadMediaMessage සඳහා, අපි Inner Media Object එක නොව,
-            // සම්පූර්ණ Quoted Message Object එක යැවිය යුතුයි.
-            const messageForDownload = m.message.extendedTextMessage.contextInfo.quotedMessage;
-            
-            if (!messageForDownload) {
-                 return reply("*⚠️ Download කිරීමට අවශ්‍ය Message Context එක සොයාගත නොහැක.*");
+            if (!['imageMessage', 'videoMessage', 'documentMessage'].includes(messageType)) {
+                return reply("*⚠️ යැවීමට සහය නොදක්වයි (Image, Video, Document පමණි).*");
             }
             
-            // Baileys' native function භාවිතයෙන් Media Buffer එක ලබා ගැනීම
-            const mediaBuffer = await zanta.downloadMediaMessage(
-                { message: messageForDownload, key: quoted.key }, 
-                'buffer'
+            // 3. Media File Download (Baileys' native function භාවිතයෙන්)
+            reply("*Status Media File එක Download කරමින් (Decryption)...* ⏳");
+            
+            // Message Content එක download කිරීම සඳහා Baileys primitive එක ලබා ගැනීම.
+            // This relies on the Baileys library being initialized correctly in ZANTA_MD.
+            const stream = await downloadContentFromMessage(
+                mediaObject, // The inner media message object (e.g., videoMessage)
+                messageType.replace('Message', '') // The correct media type (image, video, document)
             );
+            
+            // Stream එක Buffer එකක් බවට පරිවර්තනය කිරීම
+            const mediaBuffer = await streamToBuffer(stream);
             
             // 4. Message Options සැකසීම (Buffer භාවිතයෙන්)
             let messageOptions = {};
@@ -65,15 +70,14 @@ cmd(
             } else if (messageType === 'videoMessage') {
                 messageOptions = { video: mediaBuffer, caption: saveCaption };
             } else if (messageType === 'documentMessage') {
-                // Document requires mime type and file name
+                // Document සඳහා mime type සහ file name අවශ්‍ය වේ.
+                const mediaData = mediaObject[messageType];
                 messageOptions = { 
                     document: mediaBuffer, 
-                    fileName: mediaObject[messageType].fileName || 'saved_media', 
-                    mimetype: mediaObject[messageType].mimetype, 
+                    fileName: mediaData.fileName || 'saved_media', 
+                    mimetype: mediaData.mimetype, 
                     caption: saveCaption 
                 };
-            } else {
-                 return reply("*⚠️ හඳුනාගත් Media Type එක යැවීමට සහය නොදක්වයි.*");
             }
 
             // 5. Message යැවීම
@@ -82,7 +86,8 @@ cmd(
             return reply("*වැඩේ හරි 🙃✅*");
 
         } catch (e) {
-            console.error(e);
+            // Debugging සඳහා error එක console එකේ පෙන්වීම අත්‍යවශ්‍යයි
+            console.error("--- FINAL MEDIA DOWNLOAD ERROR ---", e);
             reply(`*Error downloading or sending media:* ${e.message || e}`);
         }
     }
