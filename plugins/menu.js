@@ -1,6 +1,6 @@
 const { cmd, commands } = require("../command");
 
-// 🖼️ MENU Image URL එක 
+// 🖼️ MENU Image URL එක (මෙයම තබා ගන්න)
 const MENU_IMAGE_URL = "https://github.com/Akashkavindu/ZANTA_MD/blob/main/images/ChatGPT%20Image%20Nov%2021,%202025,%2001_49_53%20AM.png?raw=true";
 
 // 📚 Commands ගබඩා කරන වස්තුව (Global Cache)
@@ -22,31 +22,31 @@ function loadCommands() {
     }
 
     // 2. ඔබ ඉල්ලූ Manual Groups සකස් කිරීම
-    // ඔබගේ Bot එකේ ඇති Commands අනුව මේවා වෙනස් විය හැක.
+    // **ඔබගේ Bot එකේ ඇති Commands අනුව මේවා වෙනස් විය හැක.**
     commandCategories['1'] = { 
         name: "Owner Menu", 
-        cats: ['owner', 'private'], // 'owner' හෝ 'private' යන categories වල commands
+        cats: ['owner', 'private'], 
         emoji: '👑' 
     };
     commandCategories['2'] = { 
-        name: "General & Other", 
-        cats: ['main', 'misc', 'other'], // 'main', 'misc', 'other' යන categories වල commands
-        emoji: '📝' 
+        name: "Group Menu", 
+        cats: ['group', 'admin'], 
+        emoji: '👥' 
     };
     commandCategories['3'] = { 
         name: "Download Menu", 
-        cats: ['download', 'media'], // 'download' හෝ 'media' යන categories වල commands
+        cats: ['download', 'media', 'converter'], 
         emoji: '📥' 
     };
     commandCategories['4'] = { 
         name: "Search & Tools", 
-        cats: ['search', 'tools',], // 'search' හෝ 'tools' යන categories වල commands
+        cats: ['search', 'tools', 'misc'], 
         emoji: '🔍' 
     };
     commandCategories['5'] = { 
-        name: "Group Menu", 
-        cats: ['group', 'admin'], // 'group' හෝ 'admin' යන categories වල commands
-        emoji: '👥' 
+        name: "General & Other", 
+        cats: ['main', 'misc', 'other', 'all'], 
+        emoji: '📝' 
     };
 }
 
@@ -80,7 +80,7 @@ cmd(
                 const replyNumber = m.q?.trim(); // User's reply (e.g., '1', '2')
 
                 // 1. Reply එක Menu එකටදැයි පරීක්ෂා කිරීම
-                if (quotedText.includes("Choose a menu option by replying with the number")) {
+                if (quotedText.includes("Reply to this message with the number to select a category")) {
 
                     if (commandCategories[replyNumber]) {
                         const selectedCat = commandCategories[replyNumber];
@@ -114,21 +114,26 @@ cmd(
 
 
             // ----------------------------------------------------
-            // Main Menu Message Generation
+            // Main Menu Message Generation (Custom Formatted Text)
             // ----------------------------------------------------
 
-            let menuText = "🤖 *ZANTA-MD Main Menu*\n\n";
+            let menuText = "╭━─━─━─━─━─━─━─━─━─━╮\n";
+            menuText += "┃ 👑 *𝐖𝐄𝐋𝐂𝐎𝐌𝐄 𝐓𝐎 𝐙𝐀𝐍𝐓𝐀-𝐌𝐃* 🤖\n";
+            menuText += "┃   _The Most Powerful WhatsApp Bot_\n";
+            menuText += "╰━─━─━─━─━─━─━─━─━─━╯\n\n";
 
-            menuText += "Choose a menu option by **replying to this message with the number**:\n\n";
+            menuText += "*📋 Available Categories:*\n";
+            menuText += "Reply number:\n\n";
             
-            // Manual Groups Add කිරීම
+            // Manual Groups Add කිරීම (අංක සහ Category නාම)
             for (const [key, data] of Object.entries(commandCategories)) {
                 menuText += `${key}. ${data.emoji} *${data.name}*\n`;
             }
 
-            menuText += "\n\n━━━━━━━━━━━━━━━━━━━━\n";
-            menuText += "💡 *Hint:* Reply with the number (e.g., reply '1' to see Owner Commands).";
-
+            menuText += "\n\n➖➖➖➖➖➖➖➖➖➖➖➖➖\n";
+            menuText += "💡Reply with the number \n";
+            menuText += "> © 𝟐𝟎𝟐𝟓 | 𝐀𝐤𝐚𝐬𝐡 𝐊𝐚𝐯𝐢𝐧𝐝𝐮\n"; 
+            
             // SEND IMAGE + MENU TEXT
             await zanta.sendMessage(
                 from,
@@ -145,6 +150,3 @@ cmd(
         }
     }
 );
-
-
-
