@@ -1,6 +1,6 @@
 const { cmd, commands } = require("../command");
 
-// --- Core Admin Check Helper Function ---
+// --- 🛡️ Core Admin Check Helper Function ---
 const checkAdminStatus = async (zanta, from, reply, isGroup, m, requireUserAdmin = true) => {
     if (!isGroup) {
         reply("*This command can only be used in a Group!* 🙁");
@@ -8,11 +8,12 @@ const checkAdminStatus = async (zanta, from, reply, isGroup, m, requireUserAdmin
     }
 
     try {
-        // Group Metadata නැවත Fetch කරයි
+        // 1. Group Metadata නැවත Fetch කරයි (Cache එක නොසලකා හැරීමට)
         let groupMeta = await zanta.groupMetadata(from);
         const botJid = zanta.user.id;
         const senderJid = m.sender; 
         
+        // 2. Admin ලැයිස්තුව සොයා ගනියි
         const admins = groupMeta.participants.filter(p => p.admin !== null).map(p => p.id);
         const isBotAdminNew = admins.includes(botJid);
         const isUserAdminNew = admins.includes(senderJid);
@@ -22,7 +23,7 @@ const checkAdminStatus = async (zanta, from, reply, isGroup, m, requireUserAdmin
             return false;
         }
         
-        // User Admin අවශ්‍ය නම් පරීක්ෂා කරයි (Kick, Promote, Demote සඳහා මෙය True වේ)
+        // 3. User Admin අවශ්‍ය නම් පරීක්ෂා කරයි
         if (requireUserAdmin && !isUserAdminNew) {
             reply("*You must be an Admin to use this command!* 👮‍♂️❌");
             return false;
