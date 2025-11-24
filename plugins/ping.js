@@ -3,7 +3,7 @@ const os = require('os');
 const { runtime, sleep } = require('../lib/functions'); 
 
 // ඔබ ලබා දුන් Image URL එක
-const STATUS_IMAGE_URL = "https://github.com/Akashkavindu/ZANTA_MD/blob/main/images/ChatGPT%20Image%20Nov%2021,%202025,%2001_21_32%20AM.png?raw=true";
+const STATUS_IMAGE_URL = "https://raw.githubusercontent.com/Akashkavindu/ZANTA_MD/refs/heads/main/images/ChatGPT%20Image%20Nov%2020%2C%202025%2C%2009_47_50%20PM.png";
 
 // Helper function to format bytes to a readable string
 function bytesToSize(bytes) {
