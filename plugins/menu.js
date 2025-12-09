@@ -1,4 +1,5 @@
 const { cmd, commands } = require("../command");
+const config = require("../config"); // BOT_NAME ලබා ගැනීමට
 
 // 🖼️ MENU Image URL එක 
 const MENU_IMAGE_URL = "https://raw.githubusercontent.com/Akashkavindu/ZANTA_MD/refs/heads/main/images/ChatGPT%20Image%20Nov%2021%2C%202025%2C%2001_49_53%20AM.png";
@@ -43,11 +44,12 @@ cmd(
             // -----------------------------------------------------
             // A. Full Menu Generation (Non-Interactive)
             // -----------------------------------------------------
+            const botName = config.BOT_NAME || "ZANTA-MD"; 
             
-            let menuText = "╭━─━─━─━─━─━─━─━─━╮\n";
-            menuText += "┃ 👑 *𝐖𝐄𝐋𝐂𝐎𝐌𝐄 𝐓𝐎 𝐙𝐀𝐍𝐓𝐀-𝐌𝐃* 🤖\n";
+            let menuText = "╭━─━─━─━─━─━─━─━╮\n";
+            menuText += `┃ 👑 *WELLCOME TO ${botName}* 🤖\n`;
             menuText += "┃   _All Available Commands_\n";
-            menuText += "╰━─━─━─━─━─━─━─━─━╯\n";
+            menuText += "╰━─━─━─━─━─━─━─━╯\n";
             
             // Iterate over all categories and list all commands
             for (const catKey in categories) {
