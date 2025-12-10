@@ -37,7 +37,7 @@ cmd(
     {
         pattern: "love",
         react: "💖",
-        desc: "Sends an animated message with a loving theme.",
+        desc: "Sends animated message(Love)",
         category: "fun",
         filename: __filename,
     },
@@ -67,7 +67,7 @@ cmd(
     {
         pattern: "fire",
         react: "🔥",
-        desc: "Sends an animated message with an energetic/aggressive theme.",
+        desc: "Sends animated message (fire)",
         category: "fun",
         filename: __filename,
     },
@@ -97,7 +97,7 @@ cmd(
     {
         pattern: "sad",
         react: "😔",
-        desc: "Sends an animated message with a sad/gloomy theme.",
+        desc: "Sends animated message (sad)",
         category: "fun",
         filename: __filename,
     },
@@ -125,7 +125,7 @@ cmd(
     {
         pattern: "angry",
         react: "😡",
-        desc: "Sends an animated message with an angry theme.",
+        desc: "Sends animated message (angry)",
         category: "fun",
         filename: __filename,
     },
