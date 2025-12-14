@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="[https://telegra.ph/file/18a24c251410493836d54.jpg](https://github.com/Akashkavindu/ZANTA_MD/blob/main/images/alive-new.jpg?raw=true)" alt="ZANTA-MD Logo" width="150" height="150"/>
+  <img src="https://github.com/Akashkavindu/ZANTA_MD/blob/main/images/alive-new.jpg?raw=true" alt="ZANTA-MD Logo" width="150" height="150"/>
   <h1>👑 ZANTA-MD</h1>
   <h3>The Advanced WhatsApp Multi-Device Bot</h3>
 </div>
