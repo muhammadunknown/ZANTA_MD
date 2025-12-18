@@ -1,174 +1,114 @@
-const { cmd, commands } = require("../command");
-const { getGroupAdmins } = require("../lib/functions");
+const { cmd } = require("../command");
 
-// --- 🛡️ Core Admin Check Helper Function ---
-// Mute/Unmute වැනි commands සඳහා මෙය තවමත් Bot Admin Check එක සිදු කරයි.
-const checkAdminStatus = async (zanta, from, reply, isGroup, m, requireUserAdmin = true) => {
-    if (!isGroup) {
-        reply("*This command can only be used in a Group!* 🙁");
-        return false;
-    }
+// --- 🛡️ Group Admin Check Logic ---
+// මචං, මෙතනදී index.js එකේ වගේම සරලව Admin ද නැද්ද කියලා බලනවා.
+async function checkAdmins(zanta, m, from, isGroup) {
+    if (!isGroup) return false;
+    const groupMetadata = await zanta.groupMetadata(from);
+    const participants = groupMetadata.participants;
+    const groupAdmins = participants.filter(p => p.admin !== null).map(p => p.id);
+    const botNumber = zanta.user.id.split(':')[0] + '@s.whatsapp.net';
+    
+    return {
+        isBotAdmin: groupAdmins.includes(botNumber),
+        isUserAdmin: groupAdmins.includes(m.sender),
+    };
+}
 
-    try {
-        let groupMeta = await zanta.groupMetadata(from);
-        const botJid = zanta.user.id.includes(':') ? zanta.user.id.split(':')[0] + '@s.whatsapp.net' : zanta.user.id;
-        const senderJid = m.sender; 
-        
-        const admins = getGroupAdmins(groupMeta.participants);
-        const isBotAdminNew = admins.includes(botJid);
-        const isUserAdminNew = admins.includes(senderJid);
+// --- MUTE COMMAND ---
+cmd({
+    pattern: "mute",
+    alias: ["close"],
+    react: "🔒",
+    desc: "Closes the group messages.",
+    category: "group",
+    filename: __filename,
+}, async (zanta, mek, m, { from, reply, isGroup }) => {
+    try {
+        if (!isGroup) return reply("❌ This is not a group!");
+        
+        const check = await checkAdmins(zanta, m, from, isGroup);
+        if (!check.isBotAdmin) return reply("❌ I need to be an **Admin** first!");
+        if (!check.isUserAdmin) return reply("❌ **You** must be an Admin to use this!");
 
-        // Mute/Unmute වැනි Group Settings වෙනස් කිරීමට Bot Admin අත්‍යවශ්‍යයි.
-        if (!isBotAdminNew) {
-            return false; // Silent Stop
-        }
-        
-        // User Admin අවශ්‍ය නම් පරීක්ෂා කරයි
-        if (requireUserAdmin && !isUserAdminNew) {
-            reply("*You must be an Admin to use this command!* 👮‍♂️❌");
-            return false;
-        }
+        await zanta.groupSettingUpdate(from, 'announcement');
+        return reply("✅ *Group Muted! Only Admins can send messages.*");
+    } catch (e) {
+        reply("❌ Error: " + e.message);
+    }
+});
 
-        return true; 
-        
-    } catch (e) {
-        console.error("Error fetching Group Metadata for Admin check:", e);
-        reply("*Error:* Failed to check admin status. Please ensure I am an admin and try again. 😔");
-        return false;
-    }
-};
+// --- UNMUTE COMMAND ---
+cmd({
+    pattern: "unmute",
+    alias: ["open"],
+    react: "🔓",
+    desc: "Opens the group messages.",
+    category: "group",
+    filename: __filename,
+}, async (zanta, mek, m, { from, reply, isGroup }) => {
+    try {
+        if (!isGroup) return reply("❌ This is not a group!");
+        
+        const check = await checkAdmins(zanta, m, from, isGroup);
+        if (!check.isBotAdmin) return reply("❌ I need to be an **Admin** first!");
+        if (!check.isUserAdmin) return reply("❌ **You** must be an Admin to use this!");
 
+        await zanta.groupSettingUpdate(from, 'not_announcement');
+        return reply("✅ *Group Unmuted! Everyone can send messages.*");
+    } catch (e) {
+        reply("❌ Error: " + e.message);
+    }
+});
 
-// --- MUTE/CLOSE COMMAND ---
-cmd(
-  {
-    pattern: "mute",
-    alias: ["close"],
-    react: "🔒",
-    desc: "Closes the group.",
-    category: "group",
-    filename: __filename,
-  },
-  async (zanta, mek, m, { from, reply, isGroup }) => {
-    // Admin Check එක තබා ඇත (මෙය Admin commands නිසා)
-    if (!await checkAdminStatus(zanta, from, reply, isGroup, m)) return;
+// --- INVITE LINK COMMAND ---
+cmd({
+    pattern: "invite",
+    alias: ["link"],
+    react: "🔗",
+    desc: "Get group invite link.",
+    category: "group",
+    filename: __filename,
+}, async (zanta, mek, m, { from, reply, isGroup }) => {
+    try {
+        if (!isGroup) return reply("❌ This is not a group!");
+        
+        const check = await checkAdmins(zanta, m, from, isGroup);
+        if (!check.isBotAdmin) return reply("❌ I need to be an **Admin** to get the link!");
 
-    try {
-      reply("*Closing group for members... 🔒*");
-      await zanta.groupSettingUpdate(from, 'announcement');
-      return reply(`*Group successfully closed! Only Admins can send messages now. 🤐✅*`);
-      
-    } catch (e) {
-      console.error(e);
-      reply(`*Error:* Failed to mute the group. ${e.message || e}`);
-    }
-  }
-);
+        const code = await zanta.groupInviteCode(from);
+        return reply(`*🔗 Group Invite Link:*\nhttps://chat.whatsapp.com/${code}`);
+    } catch (e) {
+        reply("❌ Error: " + e.message);
+    }
+});
 
-// --- UNMUTE/OPEN COMMAND ---
-cmd(
-  {
-    pattern: "unmute",
-    alias: ["open"],
-    react: "🔓",
-    desc: "Opens the group for all.",
-    category: "group",
-    filename: __filename,
-  },
-  async (zanta, mek, m, { from, reply, isGroup }) => {
-    // Admin Check එක තබා ඇත
-    if (!await checkAdminStatus(zanta, from, reply, isGroup, m)) return;
+// --- TAGALL COMMAND ---
+cmd({
+    pattern: "tagall",
+    alias: ["all"],
+    react: "🔔",
+    desc: "Tags all members.",
+    category: "group",
+    filename: __filename,
+}, async (zanta, mek, m, { from, reply, isGroup, q }) => {
+    try {
+        if (!isGroup) return reply("❌ This is not a group!");
+        
+        const groupMeta = await zanta.groupMetadata(from);
+        const participants = groupMeta.participants.map(p => p.id);
+        
+        let messageText = `*📢 Tag All Members*\n\n*Message:* ${q || 'No Message'}\n\n`;
+        for (let mem of participants) {
+            messageText += ` @${mem.split('@')[0]}`;
+        }
 
-    try {
-      reply("*Opening group for all members... 🔓*");
-      await zanta.groupSettingUpdate(from, 'not_announcement');
-      return reply(`*Group successfully opened! All members can send messages now. 💬✅*`);
-      
-    } catch (e) {
-      console.error(e);
-      reply(`*Error:* Failed to unmute the group. ${e.message || e}`);
-    }
-  }
-);
-
-// --- INVITE LINK COMMAND (NO ADMIN REQUIRED) ---
-cmd(
-  {
-    pattern: "invite",
-    alias: ["link"],
-    react: "🔗",
-    desc: "Get group invite link.",
-    category: "group",
-    filename: __filename,
-  },
-  async (zanta, mek, m, { from, reply, isGroup }) => {
-    // 👈 Admin Check එක සම්පූර්ණයෙන්ම ඉවත් කර ඇත (ඕනෑම කෙනෙකුට භාවිතා කළ හැකියි)
-    if (!isGroup) return reply("*This command is for Groups only!*");
-
-    try {
-      reply("*Generating Invite Link... 🔗*");
-      
-      const code = await zanta.groupInviteCode(from);
-      
-      if (!code) {
-          // Bot Admin නොමැති නම් මෙහිදී Error එකක්/Null එකක් ලැබීමට ඉඩ ඇත.
-          return reply("*Failed to generate the invite link. The bot may need to be a group admin.* 😔");
-      }
-
-      const inviteLink = `https://chat.whatsapp.com/${code}`;
-      
-      await zanta.sendMessage(
-        from,
-        { 
-          text: `*🔗 Group Invite Link:*\n\n${inviteLink}`,
-        },
-        { quoted: mek }
-      );
-      
-      return reply("> *වැඩේ හරි 🙃✅*");
-      
-    } catch (e) {
-      console.error(e);
-      reply(`*Error:* Failed to fetch the invite link. ${e.message || e}`);
-    }
-  }
-);
-
-
-// --- TAGALL COMMAND (NO ADMIN REQUIRED) ---
-cmd(
-  {
-    pattern: "tagall",
-    alias: ["all"],
-    react: "🔔",
-    desc: "Tags all members in group.",
-    category: "group",
-    filename: __filename,
-  },
-  async (zanta, mek, m, { from, reply, isGroup, q }) => {
-    // 👈 Admin Check එක සම්පූර්ණයෙන්ම ඉවත් කර ඇත (ඕනෑම කෙනෙකුට භාවිතා කළ හැකියි)
-    if (!isGroup) return reply("*This command is for Groups only!*");
-
-    try {
-        // Group metadata ලබා ගැනීම (Admin නොවුනත් සාමාජිකයන් ලැයිස්තුව ලබාගත හැකියි)
-        let groupMeta = await zanta.groupMetadata(from);
-        
-        // All participants
-        const participants = groupMeta.participants.map(p => p.id);
-        
-        let messageText = q || "*🔔 Attention Group! 🔔*";
-        
-        // Message එක Mention සමග යැවීම
-        await zanta.sendMessage(from, {
-            text: messageText,
-            mentions: participants 
-        }, { quoted: mek });
-        
-        return; // Command එක සාර්ථකව අවසන්
-      
-    } catch (e) {
-      console.error("Error in tagall:", e);
-      reply(`*Error:* Failed to tag all members. ${e.message || e}`);
-    }
-  }
-);
+        await zanta.sendMessage(from, { 
+            text: messageText, 
+            mentions: participants 
+        }, { quoted: mek });
+        
+    } catch (e) {
+        reply("❌ Error: " + e.message);
+    }
+});
