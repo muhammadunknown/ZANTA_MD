@@ -7,7 +7,7 @@ const lastHelpMessage = new Map();
 cmd({
     pattern: "help",
     alias: ["bothelp", "info", "උදව්"],
-    category: "setting",
+    category: "main",
     react: "❓",
     desc: "බොට් සහාය මධ්‍යස්ථානය.",
     filename: __filename,
